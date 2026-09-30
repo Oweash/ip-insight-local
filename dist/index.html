@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a101b">
+  <meta name="description" content="Investigate public IPs, domain relationships, and source-reported locations with clear evidence and saved history.">
+  <title>IP Insight · Network investigation</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="stylesheet" href="/maplibre-gl.css">
+  <link rel="stylesheet" href="/styles.css?v=13">
+  <script src="/docx.js" defer></script>
+  <script src="/jszip.js" defer></script>
+  <script type="module" src="/app.js?v=13"></script>
+  <script type="module" src="/map-ui.mjs"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/"><span class="brand-mark"><img src="/logo.png" alt="" width="32" height="32"></span><span>IP <b>Insight</b></span></a>
+      <span class="header-subtitle">PUBLIC NETWORK INTELLIGENCE <em>/ local v13</em></span>
+      <div class="account-area"><span id="account-status">Local browser</span><div id="google-button" hidden></div><button id="google-signout" class="text-button" type="button" hidden>Disconnect Google</button></div>
+    </header>
+    <main>
+      <div class="intro-grid">
+        <section class="panel search-panel" aria-labelledby="search-heading">
+          <div class="section-top"><span class="eyebrow">01 / INVESTIGATE</span><span class="scope-pill">PASSIVE SOURCES</span></div>
+          <h1 id="search-heading">Follow the evidence behind a domain.</h1>
+          <p class="intro-copy">Search a website, a public IP, or both. Compare every mapped DNS address, the locations providers report for it, and the hostnames observed nearby.</p>
+          <form id="investigate-form" novalidate>
+            <div class="input-grid"><label>Website or domain <small>optional</small><input id="domain-input" type="text" autocomplete="off" spellcheck="false" placeholder="valorant.com or https://example.com"></label><label>Public IP address <small>optional</small><input id="ip-input" type="text" autocomplete="off" spellcheck="false" placeholder="8.8.8.8 or IPv6 address"></label></div>
+            <div class="form-footer"><span>Enter either field. Supplying both checks whether the IP appears in DNS.</span><div class="form-actions"><button id="example-button" class="ghost-button" type="button">Try example</button><button id="submit-button" class="primary-button" type="submit">Investigate <span aria-hidden="true">↗</span></button></div></div>
+          </form>
+          <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+        </section>
+        <aside class="panel history-panel" aria-labelledby="history-heading">
+          <div class="section-top"><span class="eyebrow">SAVED RESEARCH</span><span id="history-count" class="count-pill">—</span></div>
+          <h2 id="history-heading">Recent investigations</h2>
+          <p id="history-intro">Recent investigations saved on this browser.</p>
+          <div class="history-tabs" role="tablist" aria-label="History location"><button id="history-local-tab" type="button" role="tab" aria-selected="true" class="active">This browser</button><button id="history-cloud-tab" type="button" role="tab" aria-selected="false" disabled hidden>Google history</button></div>
+          <div id="history-list" class="history-list"></div>
+          <p id="history-status" class="status" role="status" aria-live="polite" hidden></p>
+        </aside>
+      </div>
+
+      <div id="results" hidden>
+        <div class="result-heading"><div><span class="eyebrow">INVESTIGATION RESULT</span><h2 id="result-target">—</h2><p id="result-relation"></p></div><div class="result-meta"><span id="result-time"></span><span id="result-source-count"></span><span id="save-state"></span></div></div>
+        <section class="panel map-panel" aria-labelledby="map-heading">
+          <div class="card-head"><div><span class="eyebrow">02 / ALL REPORTED LOCATIONS</span><h2 id="map-heading">Where the IPs are reported</h2></div><div class="map-controls"><label for="map-ip-filter">Show IP</label><select id="map-ip-filter"><option value="all">All mapped IPs</option></select><label for="map-style">Map</label><select id="map-style"><option value="dark">Dark</option><option value="detailed">Detailed streets</option></select></div></div>
+          <div class="map-layout"><div class="map-container"><div id="map" aria-label="Interactive map of source-reported public IP locations"></div><div class="map-overlay"><span id="map-point-count">0 source points</span><span class="map-key"><i class="map-key-dot"></i> Provider reports</span><span class="map-key"><i class="map-key-center"></i> Consensus</span><span class="map-key"><i class="map-key-area"></i> Provider spread</span></div><div id="map-placeholder" hidden>Map unavailable. Every reported location remains listed below.</div></div><div class="map-side"><div class="consensus-card"><span class="eyebrow">CLOSEST TO SOURCE CONSENSUS</span><strong id="consensus-area">—</strong><p id="consensus-detail"></p></div><div class="radius-card"><span class="eyebrow">PROVIDER SPREAD RADIUS</span><strong id="radius-value">—</strong><p id="radius-description"></p></div><p class="caveat">Markers are database estimates for public IP networks. A consensus point or radius does not locate a person, device, origin server, or CDN customer.</p></div></div>
+          <div class="subsection-title"><h3>Locations by IP and source</h3><span id="location-count"></span></div><div id="location-list" class="location-list"></div>
+        </section>
+        <section class="panel" aria-labelledby="ips-heading"><div class="card-head"><div><span class="eyebrow">03 / DNS ADDRESS SET</span><h2 id="ips-heading">Every mapped public IP</h2></div></div><p id="ips-note" class="muted"></p><div class="table-scroll"><table><thead><tr><th>Public IP</th><th>Reported area</th><th>Provider agreement</th><th>Spread radius</th><th></th></tr></thead><tbody id="ips-body"></tbody></table></div></section>
+        <div class="two-column"><section class="panel" aria-labelledby="network-heading"><span class="eyebrow">04 / REGISTRATION & ROUTING</span><h2 id="network-heading">Network evidence</h2><div id="network-content" class="network-grid"></div></section><section class="panel" aria-labelledby="threat-heading"><span class="eyebrow">05 / INDICATORS</span><h2 id="threat-heading">Threat context</h2><div id="threat-content"></div><label class="upload-label" for="stix-file">Import a STIX 2.1 JSON bundle</label><input id="stix-file" type="file" accept=".json,.stix.json,application/json"><div id="stix-matches"></div><p class="muted">A matching indicator is a lead to review, not proof of malicious activity.</p></section></div>
+        <div class="two-column recon-grid"><section class="panel" aria-labelledby="exposure-heading"><span class="eyebrow">IP / PASSIVE EXPOSURE</span><h2 id="exposure-heading">Ports and service leads</h2><div class="recon-actions"><label for="exposure-ip">Public IP</label><select id="exposure-ip"></select><button id="exposure-check" class="ghost-button" type="button">Check IP</button></div><div id="exposure-content"></div><p id="exposure-status" class="status" role="status" aria-live="polite" hidden></p><p class="muted">InternetDB observations are not a live scan. CVE associations need validation on assets you are authorized to test.</p></section><section class="panel" aria-labelledby="dns-heading"><span class="eyebrow">DOMAIN / DNS POSTURE</span><h2 id="dns-heading">DNS configuration leads</h2><div class="recon-actions"><button id="dns-check" class="ghost-button" type="button">Check domain DNS</button></div><div id="dns-posture-content"></div><p id="dns-status" class="status" role="status" aria-live="polite" hidden></p><p class="muted">Missing records are review leads, not confirmed vulnerabilities.</p></section></div>
+        <section class="panel" aria-labelledby="web-heading"><div class="card-head"><div><span class="eyebrow">WEB / AUTHORIZED CHECK</span><h2 id="web-heading">HTTPS posture and disclosure</h2></div><button id="web-check" class="ghost-button" type="button">Check website</button></div><label class="authorization-check"><input id="web-authorized" type="checkbox"> I am authorized to test this domain and its program rules permit read-only requests.</label><p class="muted">Makes two HTTPS requests to the entered domain: the home page headers and <code>/.well-known/security.txt</code>. It does not follow redirects or scan found subdomains.</p><div id="web-posture-content"></div><p id="web-status" class="status" role="status" aria-live="polite" hidden></p></section>
+        <section class="panel" aria-labelledby="hosts-heading"><div class="card-head"><div><span class="eyebrow">06 / HOSTNAME DISCOVERY</span><h2 id="hosts-heading">Observed names</h2></div><div class="host-actions"><input id="hostname-filter" type="search" placeholder="Filter hostnames" aria-label="Filter hostnames"><button id="deep-subdomains" class="ghost-button" type="button">Deep discovery</button></div></div><div class="tabs"><button id="subdomains-tab" class="tab active" type="button">Subdomains <span id="subdomain-count">0</span></button><button id="related-tab" class="tab" type="button">IP neighbors <span id="related-count">0</span></button></div><p id="hosts-description" class="muted"></p><div id="subdomain-change" class="change-summary" hidden></div><p id="deep-status" class="status" role="status" aria-live="polite" hidden></p><div class="table-scroll"><table><thead><tr><th>Hostname</th><th>Observed IPs</th><th>Sources</th><th>Current DNS check</th></tr></thead><tbody id="hosts-body"></tbody></table></div><p class="muted">Deep discovery combines passive sources and checks public DNS for up to 32 names. It does not contact the found hosts or claim they belong to a bounty program.</p></section>
+        <section class="panel" aria-labelledby="evidence-heading"><div class="card-head"><div><span class="eyebrow">07 / PROVENANCE</span><h2 id="evidence-heading">Source log</h2></div><span id="source-summary" class="muted"></span></div><div class="table-scroll"><table><thead><tr><th>Source</th><th>Checked</th><th>Status</th><th>Reference</th></tr></thead><tbody id="evidence-body"></tbody></table></div></section>
+        <section class="panel export-panel" aria-labelledby="export-heading"><div class="card-head"><div><span class="eyebrow">08 / CASE FILE</span><h2 id="export-heading">Notes and export</h2></div><button id="save-notes" class="ghost-button" type="button">Save notes</button></div><label for="case-notes">Analyst notes</label><textarea id="case-notes" rows="4" placeholder="Record what is supported by evidence, uncertainty, and next steps."></textarea><p class="muted">Notes save on this browser. The ZIP contains the complete snapshot, formatted reports, and data tables.</p><div class="export-row"><button data-export="zip" class="primary-button" type="button">Download complete ZIP</button><button data-export="json" type="button">JSON</button><button data-export="csv" type="button">CSV</button><button data-export="docx" type="button">DOCX</button><button data-export="pdf" type="button">Print / PDF</button><button data-export="stix" type="button">STIX JSON</button></div><p id="export-status" class="status" role="status" aria-live="polite" hidden></p></section>
+      </div>
+      <section class="panel batch-panel" aria-labelledby="batch-heading"><span class="eyebrow">BATCH / COMPARISON</span><h2 id="batch-heading">Compare a small set</h2><p class="muted">Enter up to 5 domains or public IPs, one per line. Summary checks compare the selected IP and source-reported area.</p><textarea id="batch-input" rows="3" placeholder="example.com&#10;8.8.8.8"></textarea><button id="batch-button" class="ghost-button" type="button">Run comparison</button><p id="batch-status" class="status" role="status" aria-live="polite" hidden></p><div id="batch-results" class="table-scroll" hidden><table><thead><tr><th>Target</th><th>Selected IP</th><th>Reported area</th><th>Provider spread</th></tr></thead><tbody id="batch-body"></tbody></table></div></section>
+      <div class="method-note"><strong>Interpret the map carefully.</strong> IP providers can disagree, and CDN or shared-hosting addresses can serve many unrelated sites. Passive records are incomplete and may be historical. The app marks source failures and never claims to identify a person’s private IP or exact location.</div>
+    </main>
+    <footer><span>IP Insight · public network evidence</span><span><a href="/licenses.txt">Library licenses</a> · Map data © OpenStreetMap contributors, © OpenMapTiles</span></footer>
+  </div>
+</body>
+</html>
