@@ -16,7 +16,7 @@ const filename = () => (current?.input?.domain || current?.selectedIp || 'invest
 const link = (url, label) => { if (!url?.startsWith('https://')) return el('span',label); const a=el('a',label,'evidence-link'); a.href=url; a.target='_blank'; a.rel='noopener noreferrer'; return a; };
 function download(blob,name) { const url=URL.createObjectURL(blob), a=el('a'); a.href=url; a.download=name; document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),10000); }
 async function api(path, options) {
-  const response=await fetch(path,options);
+  const response=window.IP_INSIGHT_STATIC ? await (await import('./browser-api.mjs')).browserApi(path,options) : await fetch(path,options);
   if(!(response.headers.get('content-type') || '').includes('application/json')) {
     throw new Error('Site access may have expired. Reload this page and sign in with ChatGPT, then try again.');
   }
@@ -41,7 +41,7 @@ async function offerGoogle() {
 async function refreshAccount() {
   try { account=await api('/api/me'); } catch { account=null; }
   clear('google-button'); $('google-signout').hidden=!account?.googleSignedIn;
-  text('account-status',account?.localOnly ? 'Local browser' : account?.googleSignedIn ? account.name || account.email || 'Google connected' : account?.siteSignedIn ? 'Site access active' : 'Site sign-in required');
+  text('account-status',window.IP_INSIGHT_STATIC ? 'GitHub Pages · browser-only' : account?.localOnly ? 'Local browser' : account?.googleSignedIn ? account.name || account.email || 'Google connected' : account?.siteSignedIn ? 'Site access active' : 'Site sign-in required');
   $('history-cloud-tab').disabled=!account?.googleSignedIn;
   if(!account?.googleSignedIn && historyTab==='cloud') historyTab='local';
   renderHistory();
@@ -215,7 +215,11 @@ $('dns-check').addEventListener('click',async()=>{
   catch(error){status('dns-status',error.message,true);}finally{$('dns-check').disabled=false;}
 });
 function renderWebPosture(){
-  clear('web-posture-content');$('web-check').disabled=!current.input.domain;
+  clear('web-posture-content');$('web-check').disabled=!!window.IP_INSIGHT_STATIC || !current.input.domain;
+  if(window.IP_INSIGHT_STATIC){
+    $('web-authorized').closest('label').hidden=true;
+    return $('web-posture-content').append(el('p','The HTTPS header, certificate, and security.txt check runs in the localhost edition. GitHub Pages has no private server to perform this authorized check.','muted'));
+  }
   if(!current.input.domain)return $('web-posture-content').append(el('p','Enter a domain to check its HTTPS response.','muted'));
   const web=current.webPosture;
   if(!web)return $('web-posture-content').append(el('p','Run the authorized check to view response headers, certificate details, and the disclosure contact.','muted'));

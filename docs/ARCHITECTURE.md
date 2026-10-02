@@ -10,6 +10,7 @@
 | `dist/app.js` | Browser UI, local history integration, case enrichment, report generation and downloads. |
 | `src/local-history.mjs` | Bounded recent-case storage in browser localStorage. |
 | `dist/map-ui.mjs` | MapLibre rendering, visual clustering, source points, and provider spread circle. |
+| `build-pages.mjs` and `src/browser-api.mjs` | Create the GitHub Pages bundle and route passive API calls through the browser. |
 
 ## Request flow
 
@@ -25,6 +26,8 @@ flowchart LR
 ```
 
 The browser does not receive optional API keys. The server does not maintain a user database. Cases and notes are held by the browser profile, subject to localStorage limits and deletion when site data is cleared. The app never binds to a public network interface. Public map tiles and public intelligence services still receive lookup requests, so local hosting does not make the investigation offline or private from those providers.
+
+For GitHub Pages, the static bundle imports the same investigation core in the browser. Its public API requests go directly from the visitor's browser to third-party providers. These requests reveal the searched IP or domain to those providers and depend on browser cross-origin rules. No Node server, Google identity service, or shared database runs on GitHub Pages. The authorized web posture route is deliberately disabled there.
 
 ## API
 

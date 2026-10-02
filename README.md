@@ -15,6 +15,12 @@ The app is for asset triage and authorized research. It does not reveal a person
 
 On Windows, you can also double-click `START-WINDOWS.cmd` after Node.js is installed. The server binds to `127.0.0.1` only. Internet access is required for public lookup services and map tiles. Set `IP_INSIGHT_PORT` to another port if 4173 is occupied. `.env.example` lists optional settings; set them as environment variables in your terminal before starting the server. Do not commit secrets.
 
+## GitHub Pages edition
+
+The repository also builds a browser-only edition at [https://oweash.github.io/ip-insight-local/](https://oweash.github.io/ip-insight-local/). GitHub Actions runs `npm run build:pages` and publishes the generated `pages/` bundle whenever `main` changes. To enable it on a new fork, select **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+The Pages edition performs passive public lookups directly from the visitor's browser. DNS, IP location, subdomain, network, and passive exposure features work when their public providers permit cross-origin requests and quotas allow them. Failed sources remain visible in the source log. Browser history and exports stay in the visitor's own browser. The authorized HTTPS header, certificate, and `security.txt` check is disabled there because GitHub Pages cannot run the local Node server. It remains available through `npm start` on localhost. No server-side API key or Google sign-in is used on Pages. Do not place API keys in Pages source or browser storage.
+
 ## What it does
 
 - Investigates a domain, a public IP, or both; compares current DNS answers and source-reported IP locations without treating map points as exact locations.
@@ -38,7 +44,7 @@ On Windows, you can also double-click `START-WINDOWS.cmd` after Node.js is insta
 
 ## Development
 
-`npm test` runs unit and route tests. `npm run build` refreshes browser vendor assets and copies the browser history module into `dist`. The checked-in `dist` assets make the downloaded package immediately runnable. The app uses Node's standard HTTP server, a shared Web API investigation core, MapLibre GL JS, and JSZip. No paid API is required. An optional server-side `ABUSEIPDB_API_KEY` adds live reputation context; keep it in the environment, never in browser code or Git.
+`npm test` runs unit and route tests. `npm run build` refreshes browser vendor assets and copies the browser history module into `dist`. `npm run build:pages` creates the static Pages bundle. The checked-in `dist` assets make the downloaded package immediately runnable. The app uses Node's standard HTTP server, a shared Web API investigation core, MapLibre GL JS, and JSZip. No paid API is required. An optional server-side `ABUSEIPDB_API_KEY` adds live reputation context on localhost; keep it in the environment, never in browser code or Git.
 
 The current local edition uses browser-local history. Google sign-in and the previous hosted Site's cloud history are not part of this localhost package. The previous hosted URL is a separate deployment and is not required to run this project.
 
