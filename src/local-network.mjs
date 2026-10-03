@@ -2,10 +2,10 @@ import os from 'node:os';
 import net from 'node:net';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { selectPortTasks, scanHostPorts } from './port-scanner.mjs';
 
 const execFileAsync = promisify(execFile);
 const MAX_HOSTS = 254;
-const DEFAULT_PORTS = [21, 22, 53, 80, 139, 443, 445, 3389, 8080, 8443];
 
 function toNumber(ip) {
   return ip.split('.').reduce((value, octet) => ((value << 8) | Number(octet)) >>> 0, 0);
@@ -42,11 +42,15 @@ export function connectedNetworks(interfaces = os.networkInterfaces()) {
   return found;
 }
 export function parsePorts(value) {
-  if (value == null || String(value).trim() === '') return DEFAULT_PORTS;
-  if (typeof value !== 'string' || !/^\s*\d{1,5}(\s*,\s*\d{1,5})*\s*$/.test(value)) throw new Error('Enter ports as comma-separated numbers.');
-  const ports = [...new Set(value.split(',').map(Number))];
-  if (ports.length > 20 || ports.some(port => port < 1 || port > 65535)) throw new Error('Choose up to 20 ports between 1 and 65535.');
-  return ports;
+  if (typeof value !== 'string' || !/^\s*\d{1,5}(?:\s*-\s*\d{1,5})?(?:\s*,\s*\d{1,5}(?:\s*-\s*\d{1,5})?)*\s*$/.test(value)) throw new Error('Enter ports as numbers or ranges, separated by commas.');
+  const ports = new Set();
+  for (const part of value.split(',')) {
+    const [first, last = first] = part.split('-').map(Number);
+    if (first < 1 || last > 65535 || last < first || last - first > 127) throw new Error('Choose valid ports between 1 and 65535.');
+    for (let port = first; port <= last; port++) ports.add(port);
+    if (ports.size > 128) throw new Error('Mention up to 128 ports in one scan.');
+  }
+  return [...ports].sort((a, b) => a - b);
 }
 export function hostsInCidr(cidr) {
   const [address, rawPrefix] = cidr.split('/');
@@ -57,29 +61,22 @@ export function hostsInCidr(cidr) {
   const end = prefix >= 31 ? count : count - 1;
   return Array.from({ length: end - start }, (_, index) => toIp(network + start + index));
 }
-async function runLimited(items, limit, operation) {
+async function runLimited(items, limit, operation, signal) {
   let cursor = 0;
   const results = new Array(items.length);
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (cursor < items.length) {
+    while (cursor < items.length && !signal?.aborted) {
       const index = cursor++;
       results[index] = await operation(items[index]);
     }
   }));
+  if (signal?.aborted) throw new Error('Scan cancelled.');
   return results;
 }
 async function pingHost(ip) {
   const args = process.platform === 'win32' ? ['-n', '1', '-w', '500', ip] : ['-c', '1', '-W', '1', ip];
   try { await execFileAsync('ping', args, { timeout: 2200, windowsHide: true, maxBuffer: 8192 }); return true; }
   catch { return false; }
-}
-function checkPort(ip, port) {
-  return new Promise(resolve => {
-    const socket = net.createConnection({ host: ip, port, timeout: 450 });
-    socket.once('connect', () => { socket.destroy(); resolve(true); });
-    socket.once('timeout', () => { socket.destroy(); resolve(false); });
-    socket.once('error', () => { socket.destroy(); resolve(false); });
-  });
 }
 async function neighborMacs() {
   let output = '';
@@ -95,19 +92,44 @@ async function neighborMacs() {
   }
   return found;
 }
-export async function scanConnectedNetwork(id, rawPorts, { networks = connectedNetworks(), ping = pingHost, portCheck = checkPort, macs = neighborMacs } = {}) {
+export async function scanConnectedNetwork(id, rawOptions, { networks = connectedNetworks(), ping = pingHost, portCheck, udpCheck, fingerprint, macs = neighborMacs, onProgress = () => {}, signal } = {}) {
   const selected = networks.find(network => network.id === id);
   if (!selected) throw new Error('Select a currently connected private network.');
-  const ports = parsePorts(rawPorts);
-  const candidates = hostsInCidr(selected.cidr);
-  const alive = await runLimited(candidates, 16, async ip => ip === selected.address || await ping(ip));
+  const options = typeof rawOptions === 'string' ? { profile: 'custom', protocols: ['tcp'], ports: rawOptions, identifyServices: false } : rawOptions || {};
+  const profile = options.profile || 'common';
+  const protocols = options.protocols || ['tcp'];
+  const verbosity = options.verbosity === 'detailed' ? 'detailed' : 'summary';
+  const identifyServices = options.identifyServices === true;
+  const customPorts = profile === 'custom' ? parsePorts(options.ports) : null;
+  const tasks = selectPortTasks(profile, protocols, customPorts);
+  const subnetHosts = hostsInCidr(selected.cidr);
+  const targetIp = String(options.targetIp || '').trim();
+  if (targetIp && !subnetHosts.includes(targetIp)) throw new Error('The device IP must be within the selected connected private subnet.');
+  if (profile === 'all' && !targetIp) throw new Error('Enter one device IP in the connected subnet for an all-ports scan.');
+  const candidates = targetIp ? [targetIp] : subnetHosts;
+  onProgress({ stage: 'discovery', completed: 0, total: candidates.length, message: targetIp ? `Checking selected device ${targetIp}` : `Discovering up to ${candidates.length} local addresses` });
+  let discovered = 0;
+  const alive = await runLimited(candidates, 16, async ip => {
+    const present = ip === selected.address || await ping(ip);
+    discovered++;
+    if (discovered % 32 === 0 || discovered === candidates.length) onProgress({ stage: 'discovery', completed: discovered, total: candidates.length, message: `${discovered} of ${candidates.length} addresses checked` });
+    return present;
+  }, signal);
   const neighbors = await macs();
-  const targets = candidates.filter((ip, index) => alive[index] || neighbors.has(ip));
-  const devices = await runLimited(targets, 8, async ip => {
-    const open = await runLimited(ports, 4, async port => await portCheck(ip, port) ? port : null);
-    return { ip, mac: ip === selected.address ? selected.mac || null : neighbors.get(ip) || null, ports: open.filter(Boolean), isThisDevice: ip === selected.address };
-  });
-  return { scannedAt: new Date().toISOString(), network: selected, scannedHosts: candidates.length, portsChecked: ports,
+  const targets = targetIp ? [targetIp] : candidates.filter((ip, index) => alive[index] || neighbors.has(ip));
+  onProgress({ stage: 'ports', completed: 0, total: tasks.length * targets.length, message: `${targets.length} device(s) observed; checking ${tasks.length.toLocaleString()} ports per device` });
+  const completedByDevice = new Map(targets.map(ip => [ip, 0]));
+  const devices = await runLimited(targets, profile === 'all' ? 1 : 3, async ip => {
+    const result = await scanHostPorts(ip, tasks, { signal, portCheck, udpCheck, fingerprint, identifyServices, verbosity, allPorts: profile === 'all', onProgress: event => {
+      completedByDevice.set(ip, event.completed);
+      onProgress({ ...event, completed: [...completedByDevice.values()].reduce((sum, value) => sum + value, 0), total: tasks.length * targets.length });
+    } });
+    completedByDevice.set(ip, tasks.length);
+    const done = [...completedByDevice.values()].reduce((sum, value) => sum + value, 0);
+    onProgress({ stage: 'ports', ip, completed: done, total: tasks.length * targets.length, message: `${done.toLocaleString()} of ${(tasks.length * targets.length).toLocaleString()} port checks finished` });
+    return { ip, mac: ip === selected.address ? selected.mac || null : neighbors.get(ip) || null, ports: result.findings.filter(item => item.protocol === 'tcp' && item.state === 'open').map(item => item.port), ...result, isThisDevice: ip === selected.address, discovery: alive[candidates.indexOf(ip)] ? 'Responded' : 'No ping response; selected or in neighbor table' };
+  }, signal);
+  return { scannedAt: new Date().toISOString(), network: selected, scannedHosts: candidates.length, portCountPerDevice: tasks.length, portSelection: profile, protocols, verbosity, identifyServices,
     devices: devices.sort((a, b) => toNumber(a.ip) - toNumber(b.ip)),
-    note: 'Devices that block discovery probes may be missing. MAC addresses come from this computer’s local neighbor table and may be unavailable.' };
+    note: 'Device discovery can miss hosts that ignore probes. A UDP nonresponse is open or filtered, not confirmed open. Service and version clues come from port conventions or self-reported banners/headers.' };
 }

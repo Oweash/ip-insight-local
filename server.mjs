@@ -11,7 +11,7 @@ const port = Number(process.env.IP_INSIGHT_PORT || 4173);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('IP_INSIGHT_PORT must be between 1024 and 65535.');
 const assets = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
-  ...Object.entries({ 'styles.css': 'text/css', 'app.js': 'text/javascript', 'connection-scanner.mjs': 'text/javascript', 'local-history.mjs': 'text/javascript', 'map-ui.mjs': 'text/javascript', 'maplibre-gl.mjs': 'text/javascript', 'maplibre-gl-shared.mjs': 'text/javascript', 'maplibre-gl-worker.mjs': 'text/javascript', 'maplibre-gl.css': 'text/css', 'jszip.js': 'text/javascript', 'docx.js': 'text/javascript', 'leaflet.css': 'text/css', 'leaflet.js': 'text/javascript', 'licenses.txt': 'text/plain', 'logo.png': 'image/png' }).map(([name, type]) => [`/${name}`, [name, type]])
+  ...Object.entries({ 'styles.css': 'text/css', 'app.js': 'text/javascript', 'workspace-nav.mjs': 'text/javascript', 'connection-scanner.mjs': 'text/javascript', 'local-history.mjs': 'text/javascript', 'map-ui.mjs': 'text/javascript', 'maplibre-gl.mjs': 'text/javascript', 'maplibre-gl-shared.mjs': 'text/javascript', 'maplibre-gl-worker.mjs': 'text/javascript', 'maplibre-gl.css': 'text/css', 'jszip.js': 'text/javascript', 'docx.js': 'text/javascript', 'leaflet.css': 'text/css', 'leaflet.js': 'text/javascript', 'licenses.txt': 'text/plain', 'logo.png': 'image/png' }).map(([name, type]) => [`/${name}`, [name, type]])
 ]);
 
 function send(res, status, body, type = 'application/json; charset=utf-8') {
@@ -43,7 +43,19 @@ const server = http.createServer(async (req, res) => {
         const body = await readJson(req);
         if (body.authorized !== true) return send(res, 403, errorJson('Confirm you are authorized to scan this connected network.'));
         networkScanRunning = true;
-        return send(res, 200, JSON.stringify(await scanConnectedNetwork(body.networkId, body.ports)));
+        if (String(req.headers.accept || '').includes('application/x-ndjson')) {
+          const aborter = new AbortController();
+          res.on('close', () => aborter.abort());
+          res.writeHead(200, { 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
+          const emit = event => { if (!res.destroyed) res.write(`${JSON.stringify(event)}\n`); };
+          try {
+            const result = await scanConnectedNetwork(body.networkId, body.scan, { signal: aborter.signal, onProgress: event => emit({ type: 'progress', ...event }) });
+            emit({ type: 'result', data: result });
+          } catch (error) { emit({ type: 'error', message: error.message }); }
+          res.end();
+          return;
+        }
+        return send(res, 200, JSON.stringify(await scanConnectedNetwork(body.networkId, body.scan || body.ports)));
       } catch (error) { return send(res, 400, errorJson(error.message)); }
       finally { networkScanRunning = false; }
     }

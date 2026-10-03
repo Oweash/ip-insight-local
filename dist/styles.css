@@ -67,3 +67,21 @@
 @media(max-width:850px){.connection-strip{grid-template-columns:1fr 1fr}.connection-meta{grid-column:1/-1;justify-content:flex-start;max-width:none}}
 @media(max-width:650px){.connection-strip,.local-scan-fields{grid-template-columns:1fr}.connection-strip{gap:12px}.connection-meta{grid-column:auto}}
 @media print{.connection-strip,.local-scan-panel{display:none!important}}
+
+/* Workspace menu keeps related tasks in one focused view. */
+.workspace-menu{display:flex;align-items:stretch;gap:8px;margin:18px 0 0;padding:10px;background:#101d2a;border:1px solid #29404d;border-radius:10px;overflow-x:auto;scroll-margin-top:12px}
+.workspace-menu>.eyebrow{align-self:center;flex:none;padding:0 15px 0 7px;color:#7eaaa8;white-space:nowrap}
+.workspace-menu-button{min-width:150px;flex:1;text-align:left;border:1px solid transparent;border-radius:7px;background:transparent;color:#a7bec5;padding:10px 13px}
+.workspace-menu-button strong,.workspace-menu-button small{display:block}.workspace-menu-button strong{font-size:12px;color:#d7e8e8}.workspace-menu-button small{margin-top:4px;font-size:10px;line-height:1.35;color:#7795a0}
+.workspace-menu-button:hover{background:#172d3a}.workspace-menu-button.active{background:#183b39;border-color:#3d776c}.workspace-menu-button.active strong{color:#a4efcf}
+.workspace-pane{min-height:400px}.solo-intro{display:block;padding-top:20px}.solo-intro .search-panel{margin:0}.workspace-pane>.history-panel{max-width:760px;margin-top:20px}
+.result-menu{display:flex;gap:8px;overflow-x:auto;border-bottom:1px solid #31505b;padding:8px 0 12px;margin:15px 0}
+.result-menu-button{flex:none;border:1px solid #31505b;border-radius:7px;background:#102331;color:#a3bbc3;padding:10px 14px;font-size:12px;font-weight:700}
+.result-menu-button:hover{border-color:#69c8b4}.result-menu-button.active{background:#17473e;border-color:#4eaa8f;color:#bbf4df}
+@media(max-width:850px){.workspace-menu>.eyebrow{display:none}.workspace-menu-button{min-width:135px}}
+@media(max-width:650px){.workspace-menu{margin-top:12px}.workspace-menu-button{min-width:120px;padding:9px}.workspace-menu-button small{display:none}.result-menu-button{padding:9px 11px}}
+@media print{.workspace-menu,.result-menu{display:none!important}.workspace-pane{display:block!important;min-height:0}.workspace-pane:not(#workspace-investigate){display:none!important}[data-result-group]{display:block!important}}
+
+.local-scan-actions{display:flex;align-items:center;gap:12px}.local-scan-panel #local-scan-plan{background:#0d2930;border:1px solid #31515b;border-radius:7px;padding:10px 12px;margin:15px 0 0}
+#local-scan-progress{display:block;width:100%;height:9px;margin:12px 0;accent-color:#62d7b4}#local-scan-results{margin-top:14px}#local-scan-results table{min-width:900px}#local-scan-results td:first-child{white-space:pre-line;min-width:160px}#local-scan-results td:nth-child(4){min-width:160px}
+#local-scan-log{margin-top:15px;padding:12px 14px;border:1px solid #31515b;border-radius:7px;color:#bedcd6;background:#0b1a25;font-size:12px}#local-scan-log summary{cursor:pointer;color:#8ce5c7;font-weight:700}#local-scan-log pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto;font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;color:#aac5c8}

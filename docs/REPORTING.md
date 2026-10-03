@@ -23,6 +23,8 @@
 
 Exports contain the **current enriched case**. To include passive port/CVE leads, DNS posture, deep discovery, or the authorized HTTPS result, run those buttons before exporting. No scanner can invent missing source data.
 
+The **Local scanner** workspace has a separate ZIP export because it describes devices on the user's connected private network, not the public-IP investigation. Its `report.html` is a formatted, printable table; `scan.json` contains the scan plan, per-device state counts, and findings; and `ports.csv` contains the responsive or uncertain rows. Closed ports are counted in JSON rather than emitted as thousands of table rows. A banner or HTTP `Server` header is self-reported evidence, not a verified software inventory.
+
 ## Recommended finding workflow
 
 1. Verify that the domain and IP are within written program scope.

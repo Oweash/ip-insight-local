@@ -5,6 +5,7 @@ const colors = ['#5de0ba','#7da9ff','#f6c56f','#ec91b0','#b1a2f7','#7fd0df','#be
 const localHistory = new LocalHistoryManager();
 const mapStyles = { dark: 'https://tiles.openfreemap.org/styles/dark', detailed: 'https://tiles.openfreemap.org/styles/liberty' };
 let current, map, account, hostTab = 'subdomains', historyTab = 'local', cloudHistory = [], indicators = [];
+window.addEventListener('workspace-map-visible', () => map?.resize());
 const el = (tag, value, className) => { const n = document.createElement(tag); if (value != null) n.textContent = String(value); if (className) n.className = className; return n; };
 const text = (id, value, fallback = 'Unavailable') => $(id).textContent = value == null || value === '' ? fallback : String(value);
 const clear = id => $(id).replaceChildren();

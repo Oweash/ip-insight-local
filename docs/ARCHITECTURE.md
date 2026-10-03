@@ -29,6 +29,8 @@ The browser does not receive optional API keys. The server does not maintain a u
 
 For GitHub Pages, the static bundle imports the same investigation core in the browser. Its public API requests go directly from the visitor's browser to third-party providers. These requests reveal the searched IP or domain to those providers and depend on browser cross-origin rules. No Node server, Google identity service, or shared database runs on GitHub Pages. The authorized web posture route is deliberately disabled there.
 
+The workspace menu in `dist/workspace-nav.mjs` changes which existing view is visible without replacing the investigation core or map logic. `src/local-network.mjs` restricts the localhost scanner to connected private IPv4 interfaces and handles discovery and neighbor-table MACs. `src/port-scanner.mjs` performs bounded TCP/UDP checks and limited service clues. `dist/connection-scanner.mjs` reads a newline-delimited progress stream from the localhost server and prepares a separate local-scan ZIP. The Pages edition displays the scanner's availability note and never calls the local scanner route.
+
 ## API
 
 | Route | Use |
@@ -38,6 +40,8 @@ For GitHub Pages, the static bundle imports the same investigation core in the b
 | `GET /api/exposure?ip=` | Shodan InternetDB passive exposure snapshot. |
 | `GET /api/dns-posture?domain=` | NS, MX, SPF, DMARC, CAA observations. |
 | `POST /api/web-posture` | Two authorized HTTPS requests, with same-origin enforcement and private destination blocking. |
+| `GET /api/local-network/interfaces` | Lists eligible connected private IPv4 subnets for localhost scanning. |
+| `POST /api/local-network/scan` | Authorized local TCP/UDP scan; streams progress as NDJSON when requested. |
 | `GET /api/me` | Reports local mode for the UI. |
 
 ## Build and dependencies

@@ -8,6 +8,8 @@ The app is for asset triage and authorized research. It does not reveal a person
 
 At the top of both editions, **Your connection** shows the visitor's public IP from ipify and an approximate area from the first available geolocation provider (IPWhois, GeoJS, ipapi.is, or FreeIPAPI). If location sources are unavailable, the public IP can still appear without a location. VPNs, mobile networks, and shared gateways can make the reported area differ from the user's physical location. The lookup is made directly from the browser to those providers.
 
+The workspace menu opens **Investigate**, **History**, **Local scanner**, and **Compare** as separate views. Investigation results have their own map/network, recon/hostnames, and evidence/export sections, so related tools stay together.
+
 ## Start
 
 1. Install [Node.js 22 or newer](https://nodejs.org/en/download).
@@ -31,7 +33,7 @@ The Pages edition performs passive public lookups directly from the visitor's br
 - Retrieves passive port, software hint, hostname, and CVE leads from Shodan InternetDB. CVEs remain **unverified associations**.
 - Reviews NS, MX, SPF, DMARC, and CAA records.
 - On an authorized domain, makes two read-only HTTPS requests for headers, certificate metadata, and `/.well-known/security.txt`. Redirects are not followed; the connection is pinned to a validated public IPv4 DNS answer.
-- On localhost, after the user confirms permission, discovers responsive devices on a directly connected private IPv4 subnet and checks up to 20 selected TCP ports. It shows MAC addresses only when the local operating system exposes them. If an interface is broader than /24, the scan is limited to the /24 segment containing this computer. It never scans an arbitrary remote subnet.
+- On localhost, after the user confirms permission, discovers devices on a directly connected private IPv4 subnet and checks TCP, UDP, or both. Choose 30 common TCP and/or 8 UDP ports, mention up to 128 ports (including ranges), or scan all 65,535 ports of a single device in that subnet. Full scans can take many minutes and can be cancelled. The scanner shows progress, optional verbose findings, latency, MAC addresses when the OS exposes them, and limited banner/HTTP service and version clues. UDP silence is marked **open or filtered**, not confirmed open. A local-scan ZIP contains a formatted HTML report, JSON, and CSV. If an interface is broader than /24, the scan is limited to the /24 segment containing this computer. It never scans an arbitrary remote subnet.
 - Saves the latest 30 cases in browser storage, supports notes and snapshot comparison, and imports STIX 2.1 indicators for exact matching.
 - Exports a single ZIP with a formatted HTML report, editable DOCX, JSON, CSV tables, STIX JSON, and source log. Open `report.html` and print it to PDF.
 

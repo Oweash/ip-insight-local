@@ -8,18 +8,19 @@
   <title>IP Insight · Network investigation</title>
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="stylesheet" href="/maplibre-gl.css">
-  <link rel="stylesheet" href="/styles.css?v=14">
+  <link rel="stylesheet" href="/styles.css?v=15">
   <script src="/docx.js" defer></script>
   <script src="/jszip.js" defer></script>
-  <script type="module" src="/app.js?v=13"></script>
+  <script type="module" src="/workspace-nav.mjs?v=15"></script>
+  <script type="module" src="/app.js?v=15"></script>
   <script type="module" src="/map-ui.mjs"></script>
-  <script type="module" src="/connection-scanner.mjs?v=14"></script>
+  <script type="module" src="/connection-scanner.mjs?v=15"></script>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="/"><span class="brand-mark"><img src="/logo.png" alt="" width="32" height="32"></span><span>IP <b>Insight</b></span></a>
-      <span class="header-subtitle">PUBLIC NETWORK INTELLIGENCE <em>/ local v13</em></span>
+      <span class="header-subtitle">PUBLIC NETWORK INTELLIGENCE <em>/ localhost</em></span>
       <div class="account-area"><span id="account-status">Local browser</span><div id="google-button" hidden></div><button id="google-signout" class="text-button" type="button" hidden>Disconnect Google</button></div>
     </header>
     <section class="connection-strip" aria-label="Your public connection">
@@ -68,11 +69,27 @@
       <section class="panel local-scan-panel" aria-labelledby="local-scan-heading">
         <div class="card-head"><div><span class="eyebrow">LOCAL / CONNECTED NETWORK</span><h2 id="local-scan-heading">Discover devices and open ports</h2></div><span class="scope-pill">LOCALHOST EDITION</span></div>
         <p class="muted">Scan a private subnet directly connected to this computer. Device MAC addresses appear only when this computer can see them in its local neighbor table.</p>
-        <div id="local-scan-controls"><div class="local-scan-fields"><label>Connected network<select id="local-network-select"></select></label><label>TCP ports to check <small>up to 20</small><input id="local-ports" type="text" value="21,22,53,80,139,443,445,3389,8080,8443" inputmode="numeric"></label></div><label class="authorization-check"><input id="local-scan-authorized" type="checkbox"> I own this network or have permission to scan its devices.</label><button id="local-scan-button" class="ghost-button" type="button">Scan connected network</button></div>
+        <div id="local-scan-controls">
+          <div class="local-scan-fields">
+            <label>Connected network<select id="local-network-select"></select></label>
+            <label>Ports<select id="local-port-profile"><option value="common">Most common service ports</option><option value="custom">Mentioned ports only</option><option value="all">All ports (1–65535)</option></select></label>
+            <label>Protocol<select id="local-protocol"><option value="tcp">TCP</option><option value="udp">UDP</option><option value="both">TCP and UDP</option></select></label>
+            <label>Output detail<select id="local-verbosity"><option value="summary">Summary</option><option value="detailed">Verbose activity log</option></select></label>
+            <label id="local-custom-ports-field" hidden>Ports to scan <small>comma-separated numbers or ranges, up to 128</small><input id="local-ports" type="text" value="22,80,443" placeholder="22,80,443 or 8000-8010" inputmode="numeric"></label>
+            <label>One device IP <small>optional for common/custom; required for all ports</small><input id="local-target-ip" type="text" placeholder="e.g. 192.168.0.1" inputmode="decimal"></label>
+          </div>
+          <label class="authorization-check"><input id="local-identify-services" type="checkbox" checked> Identify service and version clues on responsive TCP ports (banner, HTTP headers, and TLS details).</label>
+          <p id="local-scan-plan" class="muted"></p>
+          <label class="authorization-check"><input id="local-scan-authorized" type="checkbox"> I own this network or have permission to scan its devices.</label>
+          <div class="local-scan-actions"><button id="local-scan-button" class="ghost-button" type="button">Scan connected network</button><button id="local-scan-cancel" class="text-button" type="button" hidden>Cancel scan</button></div>
+        </div>
         <p id="local-scan-status" class="status" role="status" aria-live="polite" hidden></p>
+        <progress id="local-scan-progress" value="0" max="100" hidden></progress>
         <div id="local-scan-summary" class="muted" hidden></div>
-        <div id="local-scan-results" class="table-scroll" hidden><table><thead><tr><th>Device IP</th><th>MAC address</th><th>Open TCP ports</th></tr></thead><tbody id="local-scan-body"></tbody></table></div>
-        <p class="muted">Discovery can miss devices that ignore probes. A closed or untested port is not proof that a device is secure. This feature does not connect to other networks.</p>
+        <button id="local-scan-export" class="ghost-button" type="button" hidden>Download scan ZIP</button>
+        <div id="local-scan-results" class="table-scroll" hidden><table><thead><tr><th>Device IP / MAC</th><th>Port</th><th>State</th><th>Service / version clue</th><th>Evidence</th></tr></thead><tbody id="local-scan-body"></tbody></table></div>
+        <details id="local-scan-log" hidden><summary>Verbose activity log</summary><pre id="local-scan-log-content"></pre></details>
+        <p class="muted">Discovery can miss devices that ignore probes. TCP connection and UDP response checks do not prove a vulnerability. A silent UDP port is shown as open or filtered, never as confirmed open. Service names inferred from port numbers and self-reported version strings need validation.</p>
       </section>
       <div class="method-note"><strong>Interpret the map carefully.</strong> IP providers can disagree, and CDN or shared-hosting addresses can serve many unrelated sites. Passive records are incomplete and may be historical. The app marks source failures and never claims to identify a person’s private IP or exact location.</div>
     </main>

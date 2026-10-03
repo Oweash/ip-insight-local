@@ -8,6 +8,7 @@
 | [AlienVault OTX](https://otx.alienvault.com/api) | Passive DNS observations | An observation may be stale or unavailable without an account. |
 | [urlscan.io](https://urlscan.io/docs/api/) | Public scan domain observations | Search results are public, incomplete, historical, and quota limited. |
 | [Shodan InternetDB](https://book.shodan.io/developer-apis/internetdb/) | Passive ports, software hints, hostnames, CVE associations | Not a live port scan; CVEs can be unverified associations. |
+| Connected device scan (localhost only) | Live ping, TCP connection, UDP response, local neighbor-table MAC, limited banner/HTTP/TLS clues | Requires authorization; silent UDP is ambiguous and self-reported versions need validation. |
 | Public IP geolocation providers | Provider coordinates and names | Network geolocation is approximate, and providers may disagree. |
 | [ipify](https://www.ipify.org/) | Visitor's public IP in the connection strip | Reports the internet-facing address seen by its service, which may be a VPN or shared gateway. |
 | [IPWhois](https://ipwhois.io/documentation), [GeoJS](https://www.geojs.io/), [ipapi.is](https://ipapi.is/), [FreeIPAPI](https://freeipapi.com/) | First available approximate visitor area in the connection strip | City and region can be inaccurate; browser requests send the visitor's public IP to the selected service. |
