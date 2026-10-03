@@ -8,11 +8,12 @@
   <title>IP Insight · Network investigation</title>
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="stylesheet" href="/maplibre-gl.css">
-  <link rel="stylesheet" href="/styles.css?v=13">
+  <link rel="stylesheet" href="/styles.css?v=14">
   <script src="/docx.js" defer></script>
   <script src="/jszip.js" defer></script>
   <script type="module" src="/app.js?v=13"></script>
   <script type="module" src="/map-ui.mjs"></script>
+  <script type="module" src="/connection-scanner.mjs?v=14"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -21,6 +22,11 @@
       <span class="header-subtitle">PUBLIC NETWORK INTELLIGENCE <em>/ local v13</em></span>
       <div class="account-area"><span id="account-status">Local browser</span><div id="google-button" hidden></div><button id="google-signout" class="text-button" type="button" hidden>Disconnect Google</button></div>
     </header>
+    <section class="connection-strip" aria-label="Your public connection">
+      <div><span class="eyebrow">YOUR CONNECTION / LIVE</span><strong id="self-public-ip">Checking public IP…</strong></div>
+      <div><span class="eyebrow">APPROXIMATE PUBLIC IP AREA</span><strong id="self-public-area">Checking location…</strong></div>
+      <div class="connection-meta"><span id="self-public-source">Based on public IP geolocation</span><button id="self-refresh" class="text-button" type="button">Refresh</button></div>
+    </section>
     <main>
       <div class="intro-grid">
         <section class="panel search-panel" aria-labelledby="search-heading">
@@ -59,6 +65,15 @@
         <section class="panel export-panel" aria-labelledby="export-heading"><div class="card-head"><div><span class="eyebrow">08 / CASE FILE</span><h2 id="export-heading">Notes and export</h2></div><button id="save-notes" class="ghost-button" type="button">Save notes</button></div><label for="case-notes">Analyst notes</label><textarea id="case-notes" rows="4" placeholder="Record what is supported by evidence, uncertainty, and next steps."></textarea><p class="muted">Notes save on this browser. The ZIP contains the complete snapshot, formatted reports, and data tables.</p><div class="export-row"><button data-export="zip" class="primary-button" type="button">Download complete ZIP</button><button data-export="json" type="button">JSON</button><button data-export="csv" type="button">CSV</button><button data-export="docx" type="button">DOCX</button><button data-export="pdf" type="button">Print / PDF</button><button data-export="stix" type="button">STIX JSON</button></div><p id="export-status" class="status" role="status" aria-live="polite" hidden></p></section>
       </div>
       <section class="panel batch-panel" aria-labelledby="batch-heading"><span class="eyebrow">BATCH / COMPARISON</span><h2 id="batch-heading">Compare a small set</h2><p class="muted">Enter up to 5 domains or public IPs, one per line. Summary checks compare the selected IP and source-reported area.</p><textarea id="batch-input" rows="3" placeholder="example.com&#10;8.8.8.8"></textarea><button id="batch-button" class="ghost-button" type="button">Run comparison</button><p id="batch-status" class="status" role="status" aria-live="polite" hidden></p><div id="batch-results" class="table-scroll" hidden><table><thead><tr><th>Target</th><th>Selected IP</th><th>Reported area</th><th>Provider spread</th></tr></thead><tbody id="batch-body"></tbody></table></div></section>
+      <section class="panel local-scan-panel" aria-labelledby="local-scan-heading">
+        <div class="card-head"><div><span class="eyebrow">LOCAL / CONNECTED NETWORK</span><h2 id="local-scan-heading">Discover devices and open ports</h2></div><span class="scope-pill">LOCALHOST EDITION</span></div>
+        <p class="muted">Scan a private subnet directly connected to this computer. Device MAC addresses appear only when this computer can see them in its local neighbor table.</p>
+        <div id="local-scan-controls"><div class="local-scan-fields"><label>Connected network<select id="local-network-select"></select></label><label>TCP ports to check <small>up to 20</small><input id="local-ports" type="text" value="21,22,53,80,139,443,445,3389,8080,8443" inputmode="numeric"></label></div><label class="authorization-check"><input id="local-scan-authorized" type="checkbox"> I own this network or have permission to scan its devices.</label><button id="local-scan-button" class="ghost-button" type="button">Scan connected network</button></div>
+        <p id="local-scan-status" class="status" role="status" aria-live="polite" hidden></p>
+        <div id="local-scan-summary" class="muted" hidden></div>
+        <div id="local-scan-results" class="table-scroll" hidden><table><thead><tr><th>Device IP</th><th>MAC address</th><th>Open TCP ports</th></tr></thead><tbody id="local-scan-body"></tbody></table></div>
+        <p class="muted">Discovery can miss devices that ignore probes. A closed or untested port is not proof that a device is secure. This feature does not connect to other networks.</p>
+      </section>
       <div class="method-note"><strong>Interpret the map carefully.</strong> IP providers can disagree, and CDN or shared-hosting addresses can serve many unrelated sites. Passive records are incomplete and may be historical. The app marks source failures and never claims to identify a person’s private IP or exact location.</div>
     </main>
     <footer><span>IP Insight · public network evidence</span><span><a href="/licenses.txt">Library licenses</a> · Map data © OpenStreetMap contributors, © OpenMapTiles</span></footer>

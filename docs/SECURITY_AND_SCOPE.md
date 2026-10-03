@@ -27,3 +27,9 @@ Cases and notes are in this browser's localStorage, limited to 30 recent cases a
 - Automated third-party sources can impose quotas or change behavior. Failed lookups appear in the evidence log.
 
 The [OWASP Web Security Testing Guide](https://wstg.owasp.org/) is a useful framework for an authorized human follow-up. IP Insight does not replace that methodology.
+
+## Connected-network scan
+
+The optional localhost scanner requires an explicit permission confirmation. The server accepts only a subnet calculated from one of the computer's currently connected private IPv4 interfaces. It will not accept a user-supplied target address, public subnet, or remote network. Scans are capped at 254 addresses, 20 TCP ports, and one active scan at a time. Discovery uses a single ping per address and bounded concurrent TCP connections. The server listens only on 127.0.0.1 and requires a same-origin request.
+
+MAC addresses come from the operating system's local neighbor table or the computer's own network interface. Missing MAC addresses and devices that do not answer probes are expected. The scanner does not offer stealth, remote access, exploitation, or vulnerability confirmation.

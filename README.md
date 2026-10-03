@@ -6,6 +6,8 @@ IP Insight Local is a browser-based investigation workbench for **public IP addr
 
 The app is for asset triage and authorized research. It does not reveal a person's private IP or precise physical location, prove domain ownership from a shared IP, or confirm an exploitable vulnerability from a CVE association.
 
+At the top of both editions, **Your connection** shows the visitor's public IP from ipify and an approximate area from the first available geolocation provider (IPWhois, GeoJS, ipapi.is, or FreeIPAPI). If location sources are unavailable, the public IP can still appear without a location. VPNs, mobile networks, and shared gateways can make the reported area differ from the user's physical location. The lookup is made directly from the browser to those providers.
+
 ## Start
 
 1. Install [Node.js 22 or newer](https://nodejs.org/en/download).
@@ -19,7 +21,7 @@ On Windows, you can also double-click `START-WINDOWS.cmd` after Node.js is insta
 
 The repository also builds a browser-only edition at [https://oweash.github.io/ip-insight-local/](https://oweash.github.io/ip-insight-local/). GitHub Actions runs `npm run build:pages` and publishes the generated `pages/` bundle whenever `main` changes. To enable it on a new fork, select **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
-The Pages edition performs passive public lookups directly from the visitor's browser. DNS, IP location, subdomain, network, and passive exposure features work when their public providers permit cross-origin requests and quotas allow them. Failed sources remain visible in the source log. Browser history and exports stay in the visitor's own browser. The authorized HTTPS header, certificate, and `security.txt` check is disabled there because GitHub Pages cannot run the local Node server. It remains available through `npm start` on localhost. No server-side API key or Google sign-in is used on Pages. Do not place API keys in Pages source or browser storage.
+The Pages edition performs passive public lookups directly from the visitor's browser. DNS, IP location, subdomain, network, and passive exposure features work when their public providers permit cross-origin requests and quotas allow them. Failed sources remain visible in the source log. Browser history and exports stay in the visitor's own browser. The authorized HTTPS header, certificate, and `security.txt` check and the connected-network scanner are disabled there because GitHub Pages cannot run the local Node server. They remain available through `npm start` on localhost. No server-side API key or Google sign-in is used on Pages. Do not place API keys in Pages source or browser storage.
 
 ## What it does
 
@@ -29,6 +31,7 @@ The Pages edition performs passive public lookups directly from the visitor's br
 - Retrieves passive port, software hint, hostname, and CVE leads from Shodan InternetDB. CVEs remain **unverified associations**.
 - Reviews NS, MX, SPF, DMARC, and CAA records.
 - On an authorized domain, makes two read-only HTTPS requests for headers, certificate metadata, and `/.well-known/security.txt`. Redirects are not followed; the connection is pinned to a validated public IPv4 DNS answer.
+- On localhost, after the user confirms permission, discovers responsive devices on a directly connected private IPv4 subnet and checks up to 20 selected TCP ports. It shows MAC addresses only when the local operating system exposes them. If an interface is broader than /24, the scan is limited to the /24 segment containing this computer. It never scans an arbitrary remote subnet.
 - Saves the latest 30 cases in browser storage, supports notes and snapshot comparison, and imports STIX 2.1 indicators for exact matching.
 - Exports a single ZIP with a formatted HTML report, editable DOCX, JSON, CSV tables, STIX JSON, and source log. Open `report.html` and print it to PDF.
 

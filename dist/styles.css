@@ -58,3 +58,12 @@
 @media print{.recon-actions,.host-actions,#deep-status,#exposure-status{display:none!important}}
 .brand-mark{overflow:hidden;background:#071a2a}.brand-mark img{display:block;width:32px;height:32px;object-fit:cover}.authorization-check{display:flex;align-items:flex-start;gap:9px;margin:15px 0 8px;color:#c7d9dc;font-size:12px;line-height:1.45}.authorization-check input{accent-color:#5de0ba;margin-top:2px}#web-posture-content .dns-posture-row strong{color:#b9dfd9}#web-posture-content .recon-chip{max-width:100%;overflow-wrap:anywhere}#web-posture-content>p{line-height:1.55}
 @media print{#web-check,.authorization-check,#web-status{display:none!important}}
+
+/* Connection summary and opt-in scan are additive to the existing workspace. */
+.connection-strip{display:grid;grid-template-columns:1fr 1.4fr auto;align-items:center;gap:22px;margin:19px 0 0;padding:13px 18px;background:#0c1e2a;border:1px solid #2b4950;border-radius:9px}
+.connection-strip>div{min-width:0}.connection-strip .eyebrow{display:block;margin-bottom:5px}.connection-strip strong{display:block;color:#e7f7f1;font:600 16px ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.connection-meta{display:flex;align-items:center;justify-content:flex-end;gap:15px;color:#8faab3;font-size:11px;max-width:300px}.connection-meta .text-button{white-space:nowrap}
+.local-scan-panel{margin-top:22px}.local-scan-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.local-scan-fields label{display:block;color:#b9d2d9;font-size:12px;font-weight:600}.local-scan-fields label small{color:#7e9aa5;font-weight:400}.local-scan-fields select,.local-scan-fields input{display:block;width:100%;margin-top:8px;padding:11px 12px;background:#0b1724;border:1px solid #2b4754;border-radius:7px;color:#e2f1ef;font:12px ui-monospace,SFMono-Regular,Consolas,monospace}.local-scan-panel .authorization-check{margin:15px 0}.local-scan-panel .table-scroll{margin-top:13px}
+@media(max-width:850px){.connection-strip{grid-template-columns:1fr 1fr}.connection-meta{grid-column:1/-1;justify-content:flex-start;max-width:none}}
+@media(max-width:650px){.connection-strip,.local-scan-fields{grid-template-columns:1fr}.connection-strip{gap:12px}.connection-meta{grid-column:auto}}
+@media print{.connection-strip,.local-scan-panel{display:none!important}}
