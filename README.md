@@ -51,8 +51,7 @@ The Pages edition performs passive public lookups directly from the visitor's br
 
 `npm test` runs unit and route tests. `npm run build` refreshes browser vendor assets and copies the browser history module into `dist`. `npm run build:pages` creates the static Pages bundle. The checked-in `dist` assets make the downloaded package immediately runnable. The app uses Node's standard HTTP server, a shared Web API investigation core, MapLibre GL JS, and JSZip. No paid API is required. An optional server-side `ABUSEIPDB_API_KEY` adds live reputation context on localhost; keep it in the environment, never in browser code or Git.
 
-The current local edition uses browser-local history. Google sign-in and the previous hosted Site's cloud history are not part of this localhost package. The previous hosted URL is a separate deployment and is not required to run this project.
+The current local edition uses browser-local history. Google sign-in and the previous hosted Site's cloud history are not part of this localhost package. The previous hosted URL is a separate deployment and is not required to run this project.## License
 
-## License status
+This project is licensed under the [MIT License](LICENSE). Copyright (c) 2026 Oweash Sayyed. Third-party libraries retain their own licenses; their notices are in [dist/licenses.txt](dist/licenses.txt).
 
-This repository is public for viewing and review. It has no project license yet, so public visibility alone does not grant redistribution or modification rights. Third-party library notices are in [dist/licenses.txt](dist/licenses.txt). The project owner can choose a license before accepting external contributions.
